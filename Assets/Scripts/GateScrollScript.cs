@@ -1,32 +1,18 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
+//using PlayerScript;
 
-/// <summary>
-/// Parallax scrolling script that should be assigned to a layer
-/// </summary>
-public class ScrollingScript : MonoBehaviour
-{
-	/// <summary>
-	/// Scrolling speed
-	/// </summary>
-	public Vector2 speed = new Vector2(2, 2);
+public class GateScrollScript : MonoBehaviour {
+
+	public GameObject player;
+	// Use this for initialization
+	public bool isLinkedToCamera = true;
 	public bool isLooping = false;
-	/// <summary>
-	/// Moving direction
-	/// </summary>
-	public Vector2 direction = new Vector2(-1, 0);
-	
-	/// <summary>
-	/// Movement should be applied to camera
-	/// </summary>
-	public bool isLinkedToCamera = false;
-
+	private PlayerScript playerScript;
 	private List<Transform> backgroundPart;
-
-	void Start()
-	{
-		// For infinite background only
+	void Start () {
+		playerScript = (PlayerScript)player.GetComponent<PlayerScript>();
 		if (isLooping)
 		{
 			// Get all the children of the layer with a renderer
@@ -48,26 +34,25 @@ public class ScrollingScript : MonoBehaviour
 			// We would need to add a few conditions to handle
 			// all the possible scrolling directions.
 			backgroundPart = backgroundPart.OrderBy(
-				t => t.position.x
+				t => t.position.y
 				).ToList();
 		}
 	}
-
-	void Update()
-	{
-		// Movement
-		Vector3 movement = new Vector3(
-			speed.x * direction.x,
-			speed.y * direction.y,
-			0);
-		
-		movement *= Time.deltaTime;
-		transform.Translate(movement);
-		
-		// Move the camera
-		if (isLinkedToCamera)
-		{
-			Camera.main.transform.Translate(movement);
+	
+	// Update is called once per frame
+	void Update () {
+		if (playerScript) {
+			float yV = playerScript.getYVelocity() * (-1); //Getting the players Y velocity
+			yV -= 1.3f;
+			Vector3 movement = new Vector3(0, yV, 0); //Here we get the player's Y velocity and set that to the Y velocity of the main midground elements (i.e. gates, trees, etc)
+			movement *= Time.deltaTime;	//Here we scale the movement vector in accordance with Time.deltaTime, a gamewide variable - time it took to render last frame.
+			transform.Translate(movement); //Here we translate the midground's transform (its position) along the movement vector
+			if (isLinkedToCamera)
+			{
+				Camera.main.transform.Translate(movement); //moving the camera with this dispaly
+			}
+		} else {
+			Debug.Log("GateScrollScript's playerScript object evaluating to null, this is an issue");
 		}
 		if (isLooping)
 		{
@@ -80,7 +65,7 @@ public class ScrollingScript : MonoBehaviour
 				// Check if the child is already (partly) before the camera.
 				// We test the position first because the IsVisibleFrom
 				// method is a bit heavier to execute.
-				if (firstChild.position.x < Camera.main.transform.position.x)
+				if (firstChild.position.y < Camera.main.transform.position.y)
 				{
 					// If the child is already on the left of the camera,
 					// we test if it's completely outside and needs to be
@@ -95,7 +80,7 @@ public class ScrollingScript : MonoBehaviour
 						// Set the position of the recyled one to be AFTER
 						// the last child.
 						// Note: Only work for horizontal scrolling currently.
-						firstChild.position = new Vector3(lastPosition.x + lastSize.x, firstChild.position.y, firstChild.position.z);
+						firstChild.position = new Vector3(firstChild.position.x, lastPosition.y + lastSize.y, firstChild.position.z);
 						
 						// Set the recycled child to the last position
 						// of the backgroundPart list.
@@ -105,5 +90,12 @@ public class ScrollingScript : MonoBehaviour
 				}
 			}
 		}
+
+		// Move the camera
+
+	
+	}
+	void FixedUpdate () {
+		//Transform.veloc
 	}
 }
